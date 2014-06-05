@@ -3,7 +3,7 @@ import java.util.ArrayList;
 
 public class Differentiator {
 	
-	public ArrayList operators, openingParentheses, closingParentheses, exponents, multiplication, division, addition, subtraction;
+	public ArrayList operators, openingParentheses, closingParentheses, exponents, multiplication, division, addition, subtraction, terms;
 	
 	public Differentiator() {
 		operators = new ArrayList(1);
@@ -14,6 +14,7 @@ public class Differentiator {
 		division = new ArrayList(1);
 		addition = new ArrayList(1);
 		subtraction = new ArrayList(1);
+		terms = new ArrayList(1);
 	}
 
 	public void analyze(String input) {
@@ -63,6 +64,7 @@ public class Differentiator {
 			i++;
 		}
 		try {
+			terms.add(input.substring(0, (int)operators.get(0)));
 			System.out.println(input.substring(0, (int)operators.get(0)));//the term between the beginning and the first operator
 			for (int k = 0; k < operators.size() - 1; k++) {
 //				System.out.println("numParenthLevelsIn: " + (int)determineNumParenthLevelsIn((int)operators.get(k + 1)) + ", and k:" + (k + 1));
@@ -70,26 +72,36 @@ public class Differentiator {
 				int numParenthLevelsInside = determineNumParenthLevelsIn((int)operators.get(k) + 2);
 				if (numParenthLevelsInside > 0) {
 					if (determineNumParenthLevelsIn((int)operators.get(k)) == 0) {
+						terms.add(input.charAt((int)operators.get(k)) + "");
+						terms.add("");
 						System.out.println(input.charAt((int)operators.get(k)));
 					}else{
+						terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.charAt((int)operators.get(k)));
 						System.out.print(input.charAt((int)operators.get(k)));
 					}
 					if (determineNumParenthLevelsIn((int)operators.get(k + 1)) == 0) {
 						System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
+						terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
 						System.out.print("\n");
 					}else{
+						terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
 						System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
 					}
 				}else{
+					terms.add(input.charAt((int)operators.get(k)) + "");
 					System.out.println(input.charAt((int)operators.get(k)));
+					terms.add(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
 					System.out.println(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));//the middle terms
 				}
 			}
+			terms.add(input.charAt((int)operators.get(operators.size() - 1)) + "");
 			System.out.println(input.charAt((int)operators.get(operators.size() - 1)));
+			terms.add(input.substring((int)operators.get(operators.size() - 1) + 1));
 			System.out.println(input.substring((int)operators.get(operators.size() - 1) + 1));//the term between the last operator and the end
 		}catch (Exception e) {
-			System.out.println("Ya sorry, I done goofed");
+			System.out.println("Ya, sorry, I done goofed");
 		}
+		System.out.print("");
 	}
 	
 	/**
@@ -104,6 +116,7 @@ public class Differentiator {
 		division.clear();
 		addition.clear();
 		subtraction.clear();
+		terms.clear();
 	}
 	
 	/**
