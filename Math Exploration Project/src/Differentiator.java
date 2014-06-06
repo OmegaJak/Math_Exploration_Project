@@ -18,18 +18,30 @@ public class Differentiator {
 	}
 
 	public void analyze(String input) {
-		boolean shouldContinueForward = true;
-		int i = 0;//the current iteration
-//		int lastDiscovery = 0;//the last time it found a special operator
-//		int startCharLookingIndex = 0;//the index of when it started looking for something, like it does with parentheses
-//		int lastOperatorIndex = 0;//the index of the last used operator
-//		char lookingForNextChar = ' ';//the character that it's currently looking for
-		int numParenthLevelsIn = 0;//essentially how many levels of parentheses we're currently inside of
-								   //in the equation (((4x) + 2) * 8), 4x is three levels in, 4x + 2 is two levels in
-		
 		input = input.replaceAll(" ", "");//get rid of all the spaces
+		doAnalyzingLoop(input);
+		determineSeperateTerms(input);
+	}
+	
+	/**
+	 * 
+	 * @param terms an arrayList of the terms seperated from each other and the operators, each having its own index
+	 * @return does all simplification that it can of the terms in the array
+	 */
+	public ArrayList simplifyTerms(ArrayList terms) {
+		ArrayList newTerms = terms;
 		
-		while (shouldContinueForward && i < input.length() - 1) {
+		return newTerms;
+	}
+	
+	/**
+	 * Loops through the input and adds the characters and stuff to their respective arrays
+	 * @param input the input...duh
+	 */
+	private void doAnalyzingLoop(String input) {
+		int i = 0;//the current iteration
+		
+		while (i < input.length() - 1) {
 			char currentLetter = input.charAt(i);
 			switch (currentLetter) {
 				case '(':
@@ -63,6 +75,13 @@ public class Differentiator {
 			}
 			i++;
 		}
+	}
+	
+	/**
+	 * Adds the individual terms and the operators to the terms array
+	 * @param input
+	 */
+	private void determineSeperateTerms(String input) {
 		try {
 			terms.add(input.substring(0, (int)operators.get(0)));
 			System.out.println(input.substring(0, (int)operators.get(0)));//the term between the beginning and the first operator
