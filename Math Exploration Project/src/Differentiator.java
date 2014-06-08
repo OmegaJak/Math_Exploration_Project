@@ -4,24 +4,29 @@ import java.util.ArrayList;
 
 public class Differentiator {
 	
-	public ArrayList operators, openingParentheses, closingParentheses, exponents, multiplication, division, addition, subtraction, terms;
+	public ArrayList operators, openingParentheses, closingParentheses, /*exponents, multiplication, division, addition, subtraction,*/ terms;
 	
 	public Differentiator() {
 		operators = new ArrayList(1);
 		openingParentheses = new ArrayList(1);
 		closingParentheses = new ArrayList(1);
-		exponents = new ArrayList(1);
+/*		exponents = new ArrayList(1);
 		multiplication = new ArrayList(1);
 		division = new ArrayList(1);
 		addition = new ArrayList(1);
-		subtraction = new ArrayList(1);
+		subtraction = new ArrayList(1);*/
 		terms = new ArrayList(1);
 	}
 
 	public void analyze(String input) {
 		input = input.replaceAll(" ", "");//get rid of all the spaces
-		doAnalyzingLoop(input);
-		determineSeperateTerms(input);
+		
+		ArrayList analyzeList = doAnalyzingLoop(input);
+		operators = (ArrayList)analyzeList.get(0);
+		openingParentheses = (ArrayList)analyzeList.get(1);
+		closingParentheses = (ArrayList)analyzeList.get(2);
+		
+		terms = determineSeperateTerms(input, operators);
 		terms = simplifyTerms(terms);
 	}
 	
@@ -65,9 +70,14 @@ public class Differentiator {
 	/**
 	 * Loops through the input and adds the characters and stuff to their respective arrays
 	 * @param input the input...duh
+	 * @return an ArrayList of three ArrayLists, index 0 is operators, 1 is openingParentheses, 2 is closingParentheses
 	 */
-	private void doAnalyzingLoop(String input) {
+	private ArrayList doAnalyzingLoop(String input) {
 		int i = 0;//the current iteration
+		ArrayList returnList = new ArrayList(0);
+		ArrayList terms = new ArrayList(0);
+		ArrayList openingParentheses = new ArrayList(0);
+		ArrayList closingParentheses = new ArrayList(0);
 		
 		while (i < input.length() - 1) {
 			char currentLetter = input.charAt(i);
@@ -81,36 +91,43 @@ public class Differentiator {
 //					operators.add(i);
 					break;
 				case '^':
-					exponents.add(i);
+//					exponents.add(i);
 //					operators.add(i);
 					break;
 				case '*':
-					multiplication.add(i);
+//					multiplication.add(i);
 					operators.add(i);
 					break;
 				case '/':
-					division.add(i);
+//					division.add(i);
 					operators.add(i);
 					break;
 				case '+':
-					addition.add(i);
+//					addition.add(i);
 					operators.add(i);
 					break;
 				case '-':
-					subtraction.add(i);
+//					subtraction.add(i);
 					operators.add(i);
 					break;
 			}
 			i++;
 		}
+		
+		returnList.add(terms);
+		returnList.add(openingParentheses);
+		returnList.add(closingParentheses);
+		
+		return returnList;
 	}
 	
 	/**
 	 * Adds the individual terms and the operators to the terms array
-	 * @param input
+	 * @param input umm... input....
+	 * @param operators an ArrayList with each index an index of each of the operators
 	 * @return an ArrayList of separated up terms
 	 */
-	private ArrayList determineSeperateTerms(String input) {
+	private ArrayList determineSeperateTerms(String input, ArrayList operators) {
 		ArrayList terms = new ArrayList(0);
 		try {
 			if (operators.size() != 0) {
@@ -168,11 +185,11 @@ public class Differentiator {
 		operators.clear();
 		openingParentheses.clear();
 		closingParentheses.clear();
-		exponents.clear();
+/*		exponents.clear();
 		multiplication.clear();
 		division.clear();
 		addition.clear();
-		subtraction.clear();
+		subtraction.clear();*/
 		terms.clear();
 	}
 	
