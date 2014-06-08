@@ -1,4 +1,3 @@
-import java.io.Console;
 import java.util.ArrayList;
 
 
@@ -38,9 +37,52 @@ public class Differentiator {
 	public ArrayList simplifyTerms(ArrayList terms) {
 		ArrayList newTerms = terms;
 		newTerms = addImpliedOnes(newTerms);
+		newTerms = dealWithParentheses(newTerms);
 		return newTerms;
 	}
 	
+	/**
+	 * 
+	 * @param terms
+	 * @return
+	 */
+	private ArrayList dealWithParentheses(ArrayList terms) {
+		ArrayList newTerms = terms;
+		System.out.println("Now we're dealing with the parentheses");
+		
+		for (int i = 0; i < newTerms.size(); i++) {
+			String term = (String)newTerms.get(i);
+			if (term.indexOf("(") != -1 && term.indexOf(")") != -1) {
+				int beginParenth = -1;
+				int endParenth = -1;
+				for (int k = 0; k < term.length(); k++) {
+					if (term.charAt(k) == '(') {
+						beginParenth = k;
+					}
+					if (term.charAt(term.length() - k - 1) == ')') {
+						endParenth = term.length() - k - 1;
+					}
+					if (beginParenth != -1 && endParenth != -1)
+						break;
+				}
+				String substring = ((String)terms.get(i)).substring(beginParenth+1, endParenth);
+				ArrayList analyzedParentheses = doAnalyzingLoop(substring);
+				ArrayList separatedParentheses = determineSeperateTerms(substring, (ArrayList)analyzedParentheses.get(0));
+				if (contains(")", separatedParentheses) && contains("(", separatedParentheses)) {
+					ArrayList parenthTerms = dealWithParentheses(separatedParentheses);
+					newTerms.set(i, parenthTerms.get(0));
+					if (parenthTerms.size() > 1) {
+						for (int k = 1; k < parenthTerms.size(); k++) {
+							newTerms.add(i + k, parenthTerms.get(k));
+						}
+					}
+				}
+			}
+		}
+		
+		return newTerms;
+	}
+
 	/**
 	 * It turns every term with implied forms like just "x", this turns it into "1x^1" for easier interpretation
 	 * @param terms an arrayList of the terms separated like in simplifyTerms(terms), no parentheses allowed
@@ -75,7 +117,7 @@ public class Differentiator {
 	private ArrayList doAnalyzingLoop(String input) {
 		int i = 0;//the current iteration
 		ArrayList returnList = new ArrayList(0);
-		ArrayList terms = new ArrayList(0);
+		ArrayList operators = new ArrayList(0);
 		ArrayList openingParentheses = new ArrayList(0);
 		ArrayList closingParentheses = new ArrayList(0);
 		
@@ -114,7 +156,7 @@ public class Differentiator {
 			i++;
 		}
 		
-		returnList.add(terms);
+		returnList.add(operators);
 		returnList.add(openingParentheses);
 		returnList.add(closingParentheses);
 		
@@ -322,5 +364,21 @@ public class Differentiator {
 			return false;
 		}
 		return true;
+	}
+	
+	/**
+	 * 
+	 * @param lookingFor what string we are looking for
+	 * @param terms an arrayList to loop through
+	 * @return whether or not the string is in the arrayList somewhere
+	 */
+	public boolean contains(String lookingFor, ArrayList terms) {
+		for (int i = 0; i < terms.size(); i++) {
+			String term = terms.get(i).toString();
+			if (term.contains(lookingFor)) {
+				return true;
+			}
+		}
+		return false;
 	}
 }
