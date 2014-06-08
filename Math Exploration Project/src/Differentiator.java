@@ -70,12 +70,14 @@ public class Differentiator {
 				ArrayList separatedParentheses = determineSeperateTerms(substring, (ArrayList)analyzedParentheses.get(0));
 				if (contains(")", separatedParentheses) && contains("(", separatedParentheses)) {
 					ArrayList parenthTerms = dealWithParentheses(separatedParentheses);
-					newTerms.set(i, parenthTerms.get(0));
-					if (parenthTerms.size() > 1) {
+					newTerms.set(i, parenthTerms);
+/**					if (parenthTerms.size() > 1) {
 						for (int k = 1; k < parenthTerms.size(); k++) {
 							newTerms.add(i + k, parenthTerms.get(k));
 						}
-					}
+					}*/
+				}else{
+					newTerms.set(i, separatedParentheses);
 				}
 			}
 		}
@@ -137,20 +139,24 @@ public class Differentiator {
 //					operators.add(i);
 					break;
 				case '*':
-//					multiplication.add(i);
-					operators.add(i);
+					if (determineNumParenthLevelsIn(input, i, openingParentheses, closingParentheses) == 0) {
+						operators.add(i);
+					}
 					break;
 				case '/':
-//					division.add(i);
-					operators.add(i);
+					if (determineNumParenthLevelsIn(input, i, openingParentheses, closingParentheses) == 0) {
+						operators.add(i);
+					}
 					break;
 				case '+':
-//					addition.add(i);
-					operators.add(i);
+					if (determineNumParenthLevelsIn(input, i, openingParentheses, closingParentheses) == 0) {
+						operators.add(i);
+					}
 					break;
 				case '-':
-//					subtraction.add(i);
-					operators.add(i);
+					if (determineNumParenthLevelsIn(input, i, openingParentheses, closingParentheses) == 0) {
+						operators.add(i);
+					}
 					break;
 			}
 			i++;
@@ -178,9 +184,9 @@ public class Differentiator {
 				for (int k = 0; k < operators.size() - 1; k++) {
 					//				System.out.println("numParenthLevelsIn: " + (int)determineNumParenthLevelsIn((int)operators.get(k + 1)) + ", and k:" + (k + 1));
 					int currIndex = (int)operators.get(k) + 2;
-					int numParenthLevelsInside = determineNumParenthLevelsIn((int)operators.get(k) + 2);
+					int numParenthLevelsInside = determineNumParenthLevelsIn(input, (int)operators.get(k) + 2, this.openingParentheses, this.closingParentheses);
 					if (numParenthLevelsInside > 0) {
-						if (determineNumParenthLevelsIn((int)operators.get(k)) == 0) {
+						if (determineNumParenthLevelsIn(input, (int)operators.get(k), this.openingParentheses, this.closingParentheses) == 0) {
 							terms.add(input.charAt((int)operators.get(k)) + "");
 							terms.add("");
 							System.out.println(input.charAt((int)operators.get(k)));
@@ -188,7 +194,7 @@ public class Differentiator {
 							terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.charAt((int)operators.get(k)));
 							System.out.print(input.charAt((int)operators.get(k)));
 						}
-						if (determineNumParenthLevelsIn((int)operators.get(k + 1)) == 0) {
+						if (determineNumParenthLevelsIn(input, (int)operators.get(k + 1), this.openingParentheses, this.closingParentheses) == 0) {
 							System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
 							terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
 							System.out.print("\n");
@@ -238,10 +244,13 @@ public class Differentiator {
 	/**
 	 * I feel like this can be more efficient slightly by incrementing through the arrayList indexes,
 	 * but I don't feel like thinking that much right now. For the moment, this should work.
+	 * @param input the input to analyze
 	 * @param index of the letter that you want to know how many levels in
+	 * @param openingParentheses an arrayList with the indexes of all opening parentheses
+	 * @param closingParentheses an arrayList with the indexes of all closing parentheses
 	 * @return how many parentheses levels in the letter at the index specified is in
 	 */
-	public int determineNumParenthLevelsIn(int index) {
+	public int determineNumParenthLevelsIn(String input, int index, ArrayList openingParentheses, ArrayList closingParentheses) {
 		int numParenthLevelsIn = 0;
 		if (openingParentheses.size() != 0) {
 			int i = (int)(openingParentheses.get(0));
