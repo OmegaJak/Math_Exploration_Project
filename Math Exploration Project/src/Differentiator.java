@@ -108,8 +108,10 @@ public class Differentiator {
 	/**
 	 * Adds the individual terms and the operators to the terms array
 	 * @param input
+	 * @return an ArrayList of separated up terms
 	 */
-	private void determineSeperateTerms(String input) {
+	private ArrayList determineSeperateTerms(String input) {
+		ArrayList terms = new ArrayList(0);
 		try {
 			if (operators.size() != 0) {
 				terms.add(input.substring(0, (int)operators.get(0)));
@@ -156,6 +158,7 @@ public class Differentiator {
 			System.out.println("Something very bad went wrong, I don't exactly know what. Stop it.");
 		}
 		System.out.print("");
+		return terms;
 	}
 	
 	/**
