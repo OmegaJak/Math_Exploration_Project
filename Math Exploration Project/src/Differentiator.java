@@ -1,3 +1,4 @@
+import java.io.Console;
 import java.util.ArrayList;
 
 
@@ -21,15 +22,42 @@ public class Differentiator {
 		input = input.replaceAll(" ", "");//get rid of all the spaces
 		doAnalyzingLoop(input);
 		determineSeperateTerms(input);
+		terms = simplifyTerms(terms);
 	}
 	
 	/**
 	 * 
-	 * @param terms an arrayList of the terms seperated from each other and the operators, each having its own index
+	 * @param terms an arrayList of the terms separated from each other and the operators, each having its own index
 	 * @return does all simplification that it can of the terms in the array
 	 */
 	public ArrayList simplifyTerms(ArrayList terms) {
 		ArrayList newTerms = terms;
+		newTerms = addImpliedOnes(newTerms);
+		return newTerms;
+	}
+	
+	/**
+	 * It turns every term with implied forms like just "x", this turns it into "1x^1" for easier interpretation
+	 * @param terms an arrayList of the terms separated like in simplifyTerms(terms), no parentheses allowed
+	 * @return an arrayList with all terms in the form of kx^n
+	 */
+	public ArrayList addImpliedOnes(ArrayList terms) {
+		ArrayList newTerms = terms;
+		
+		String term;
+		for (int i = 0; i < terms.size(); i++) {
+			term = (String)newTerms.get(i);
+			int xIndex = term.indexOf("x");
+			if (xIndex != -1) {
+				if (xIndex == 0) {
+					term = "1" + term;
+				}
+				if (term.indexOf("^") == -1) {
+					term = term + "^1";
+				}
+			}
+			terms.set(i, term);
+		}
 		
 		return newTerms;
 	}
@@ -83,42 +111,49 @@ public class Differentiator {
 	 */
 	private void determineSeperateTerms(String input) {
 		try {
-			terms.add(input.substring(0, (int)operators.get(0)));
-			System.out.println(input.substring(0, (int)operators.get(0)));//the term between the beginning and the first operator
-			for (int k = 0; k < operators.size() - 1; k++) {
-//				System.out.println("numParenthLevelsIn: " + (int)determineNumParenthLevelsIn((int)operators.get(k + 1)) + ", and k:" + (k + 1));
-				int currIndex = (int)operators.get(k) + 2;
-				int numParenthLevelsInside = determineNumParenthLevelsIn((int)operators.get(k) + 2);
-				if (numParenthLevelsInside > 0) {
-					if (determineNumParenthLevelsIn((int)operators.get(k)) == 0) {
+			if (operators.size() != 0) {
+				terms.add(input.substring(0, (int)operators.get(0)));
+				System.out.println(input.substring(0, (int)operators.get(0)));//the term between the beginning and the first operator
+				for (int k = 0; k < operators.size() - 1; k++) {
+					//				System.out.println("numParenthLevelsIn: " + (int)determineNumParenthLevelsIn((int)operators.get(k + 1)) + ", and k:" + (k + 1));
+					int currIndex = (int)operators.get(k) + 2;
+					int numParenthLevelsInside = determineNumParenthLevelsIn((int)operators.get(k) + 2);
+					if (numParenthLevelsInside > 0) {
+						if (determineNumParenthLevelsIn((int)operators.get(k)) == 0) {
+							terms.add(input.charAt((int)operators.get(k)) + "");
+							terms.add("");
+							System.out.println(input.charAt((int)operators.get(k)));
+						}else{
+							terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.charAt((int)operators.get(k)));
+							System.out.print(input.charAt((int)operators.get(k)));
+						}
+						if (determineNumParenthLevelsIn((int)operators.get(k + 1)) == 0) {
+							System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
+							terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
+							System.out.print("\n");
+						}else{
+							terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
+							System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
+						}
+					}else{
 						terms.add(input.charAt((int)operators.get(k)) + "");
-						terms.add("");
 						System.out.println(input.charAt((int)operators.get(k)));
-					}else{
-						terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.charAt((int)operators.get(k)));
-						System.out.print(input.charAt((int)operators.get(k)));
+						terms.add(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
+						System.out.println(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));//the middle terms
 					}
-					if (determineNumParenthLevelsIn((int)operators.get(k + 1)) == 0) {
-						System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
-						terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
-						System.out.print("\n");
-					}else{
-						terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
-						System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
-					}
-				}else{
-					terms.add(input.charAt((int)operators.get(k)) + "");
-					System.out.println(input.charAt((int)operators.get(k)));
-					terms.add(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
-					System.out.println(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));//the middle terms
 				}
+				terms.add(input.charAt((int)operators.get(operators.size() - 1)) + "");
+				System.out.println(input.charAt((int)operators.get(operators.size() - 1)));
+				terms.add(input.substring((int)operators.get(operators.size() - 1) + 1));
+				System.out.println(input.substring((int)operators.get(operators.size() - 1) + 1));//the term between the last operator and the end
+			}else{
+				System.out.println(input);
 			}
-			terms.add(input.charAt((int)operators.get(operators.size() - 1)) + "");
-			System.out.println(input.charAt((int)operators.get(operators.size() - 1)));
-			terms.add(input.substring((int)operators.get(operators.size() - 1) + 1));
-			System.out.println(input.substring((int)operators.get(operators.size() - 1) + 1));//the term between the last operator and the end
+		}catch (IndexOutOfBoundsException e) {
+			System.out.print("There was an IndexOutOfBoundsException with ");
+			System.out.println(e.getLocalizedMessage());
 		}catch (Exception e) {
-			System.out.println("Ya, sorry, I done goofed");
+			System.out.println("Something very bad went wrong, I don't exactly know what. Stop it.");
 		}
 		System.out.print("");
 	}
@@ -145,16 +180,18 @@ public class Differentiator {
 	 * @return how many parentheses levels in the letter at the index specified is in
 	 */
 	public int determineNumParenthLevelsIn(int index) {
-		int i = (int)(openingParentheses.get(0));
 		int numParenthLevelsIn = 0;
-		while (i < index) {
-			if (openingParentheses.contains((i))) {
-				numParenthLevelsIn++;
+		if (openingParentheses.size() != 0) {
+			int i = (int)(openingParentheses.get(0));
+			while (i < index) {
+				if (openingParentheses.contains((i))) {
+					numParenthLevelsIn++;
+				}
+				if (closingParentheses.contains(i)) {
+					numParenthLevelsIn--;
+				}
+				i++;
 			}
-			if (closingParentheses.contains(i)) {
-				numParenthLevelsIn--;
-			}
-			i++;
 		}
 		return numParenthLevelsIn;
 	}
