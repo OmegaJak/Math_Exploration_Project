@@ -38,9 +38,28 @@ public class Differentiator {
 		ArrayList newTerms = terms;
 		newTerms = addImpliedOnes(newTerms);
 		newTerms = dealWithParentheses(newTerms);
+		newTerms = dealWithExponents(newTerms);
 		return newTerms;
 	}
 	
+	private ArrayList dealWithExponents(ArrayList terms) {
+		ArrayList newTerms = terms;
+		for (int i = 0; i < newTerms.size(); i++) {
+			if (newTerms.get(i) instanceof String) {
+				String term = (String)newTerms.get(i);
+				int caratIndex = term.indexOf('^');
+				if (caratIndex != -1) {
+					if (term.indexOf('x') == -1){
+						newTerms.set(i, "" + Math.pow(Double.parseDouble(term.substring(0, caratIndex)), Double.parseDouble(term.substring(caratIndex + 1, term.length()))));
+					}
+				}
+			}else if (newTerms.get(i) instanceof ArrayList) {
+				newTerms.set(i, dealWithExponents((ArrayList)newTerms.get(i)));
+			}
+		}
+		return terms;
+	}
+
 	/**
 	 * 
 	 * @param terms
@@ -57,7 +76,7 @@ public class Differentiator {
 				int beginParenth = -1;
 				int endParenth = -1;
 				for (int k = 0; k < term.length(); k++) {
-					if (term.charAt(k) == '(') {
+					if (term.charAt(k) == '(' && beginParenth == -1) {
 						beginParenth = k;
 					}
 					if (term.charAt(term.length() - k - 1) == ')') {
@@ -80,9 +99,36 @@ public class Differentiator {
 			}
 		}
 		
-		ArrayList emdasList = findAndIdentifyEMDAS((String)newTerms.get(workingIndex));
+//		String workingIndexString = getString(newTerms.get(workingIndex));
+//		ArrayList emdasList = findAndIdentifyEMDAS(workingIndexString);
+//		newTerms = addImpliedOnes(newTerms);
 		
+		System.out.println(newTerms.toString());
 		return newTerms;
+	}
+	
+	/**
+	 * This is for Strings or ArrayLists containing Strings only, otherwise you'll just get object.toString()
+	 * @param object
+	 * @return a nice string form that I like to work with
+	 */
+	private String getString(Object object) {
+		if (object instanceof String) {
+			return (String)object;
+		}else if (object instanceof ArrayList) {
+			String result = "";
+			for (int i = 0; i < ((ArrayList)object).size(); i++) {
+				if (!((ArrayList)object).isEmpty()) {
+					if (((ArrayList)object).get(i) instanceof String) {
+						result += ((ArrayList)object).get(i);
+					}else if (((ArrayList)object).get(i) instanceof ArrayList) {
+						result += getString(((ArrayList) object).get(i));
+					}
+				}
+			}
+			return result;
+		}
+		return object.toString();
 	}
 
 	/**
@@ -92,22 +138,26 @@ public class Differentiator {
 	 */
 	public ArrayList addImpliedOnes(ArrayList terms) {
 		ArrayList newTerms = terms;
-		
+
 		String term;
 		for (int i = 0; i < terms.size(); i++) {
-			term = (String)newTerms.get(i);
-			int xIndex = term.indexOf("x");
-			if (xIndex != -1) {
-				if (xIndex == 0) {
-					term = "1" + term;
+			if (terms.get(i) instanceof String) {
+				term = (String)newTerms.get(i);
+				int xIndex = term.indexOf("x");
+				if (xIndex != -1) {
+					if (xIndex == 0) {
+						term = "1" + term;
+					}
+					if (term.indexOf("^") == -1) {
+						term = term + "^1";
+					}
 				}
-				if (term.indexOf("^") == -1) {
-					term = term + "^1";
-				}
+				terms.set(i, term);
+			}else if (terms.get(i) instanceof ArrayList) {
+				terms.set(i, addImpliedOnes((ArrayList)terms.get(i)));
 			}
-			terms.set(i, term);
 		}
-		
+
 		return newTerms;
 	}
 	
@@ -128,15 +178,9 @@ public class Differentiator {
 			switch (currentLetter) {
 				case '(':
 					openingParentheses.add(i);
-//					operators.add(i);
 					break;
 				case ')':
 					closingParentheses.add(i);
-//					operators.add(i);
-					break;
-				case '^':
-//					exponents.add(i);
-//					operators.add(i);
 					break;
 				case '*':
 					if (determineNumParenthLevelsIn(input, i, openingParentheses, closingParentheses) == 0) {
@@ -313,7 +357,7 @@ public class Differentiator {
 	}
 	
 	/**
-	 * This is assuming that the terms are in the form of kx^n, with k being some double
+	 * This is assuming that the terms are in the form of kx^n, with k being some double. Can also be just k. Thats cool
 	 * There must be both a k and an n, even if they are just 1.0D
 	 * If type is 2 or 3, it is also assuming that canAddOrSubtractTerms has already been called and returned true
 	 * @param term1 the first term
@@ -322,6 +366,9 @@ public class Differentiator {
 	 * @return a simplified output of the two terms
 	 */
 	public String simplifyTerms(String term1, String term2, int type) {
+		if (term1.indexOf("x") == -1) {
+			return "" + determineCoefficient(term1, term2, type);
+		}
 		double answerCoefficient = determineCoefficient(term1, term2, type);
 		double answerExponent = determineExponent(term1, term2, type);
 		
@@ -347,7 +394,7 @@ public class Differentiator {
 	}
 	
 	/**
-	 * This also assumes the form of kx^n
+	 * This also assumes the form of kx^n, or just k
 	 * It will not do anything with the variable being something besides ^ to show exponentiation
 	 * @param type 0 mean add exponents, type 1 means subtract exponents, type 2 or 3 means keep term1's exponent, assuming term1 and term1 and term2's
 	 * exponents are the same
@@ -380,19 +427,19 @@ public class Differentiator {
 	}
 	
 	/**
-	 * This also assumes the form of kx^n
+	 * This also assumes the form of kx^n, or just k
 	 * It will not do anything with the variable being something besides x (atm)
 	 * @param type 0 means term1 coef * term2 coef, 1 means term1 / term2, 2 term1 + term2, 3 term1 - term2
 	 * @return The multiplied coefficients of the two terms
 	 */
 	public double determineCoefficient(String term1, String term2, int type) {
-		String term1CoefficientString = term1.substring(0, term1.indexOf("x"));//anything between the beginning and x
+		String term1CoefficientString = term1.substring(0, term1.indexOf("x") != -1 ? term1.indexOf("x") : term1.length());//anything between the beginning and x
 		double term1Coefficient = 0D;
 		if (isDouble(term1CoefficientString)) {//if it's ok to parse it to a double
 			term1Coefficient = Double.parseDouble(term1CoefficientString);
 		}
 
-		String term2CoefficientString = term2.substring(0, term2.indexOf("x"));
+		String term2CoefficientString = term2.substring(0, term2.indexOf("x") != -1 ? term1.indexOf("x") : term2.length());
 		double term2Coefficient = 0D;
 		if (isDouble(term2CoefficientString)) {
 			term2Coefficient = Double.parseDouble(term2CoefficientString);
