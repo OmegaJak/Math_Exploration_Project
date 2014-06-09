@@ -36,9 +36,36 @@ public class Differentiator {
 	 */
 	public ArrayList simplifyTerms(ArrayList terms) {
 		ArrayList newTerms = terms;
-		newTerms = addImpliedOnes(newTerms);
 		newTerms = dealWithParentheses(newTerms);
+		newTerms = addImpliedOnes(newTerms);
+		System.out.println(newTerms);
 		newTerms = dealWithExponents(newTerms);
+		System.out.println(newTerms);
+		newTerms = dealWithMultiplication(newTerms);
+		System.out.println(newTerms);
+		return newTerms;
+	}
+	
+	private ArrayList dealWithMultiplication(ArrayList terms) {
+		ArrayList newTerms = terms;
+		int incrementBy = 2;
+		for (int i = 0; i < newTerms.size(); i += incrementBy) {
+			if (newTerms.get(i) instanceof String) {
+				if (i + 1 < newTerms.size() && newTerms.get(i + 1) instanceof String) {
+					if (newTerms.get(i + 1).equals("*") && newTerms.get(i + 2) instanceof String) {
+						newTerms.set(i, simplifyTerms((String)newTerms.get(i), (String)newTerms.get(i + 2), 0));
+						newTerms.remove(i + 1);
+						newTerms.remove(i + 1);
+						incrementBy = 0;
+					}else incrementBy = 2;
+				} else {//we're multiplying by parentheses
+					incrementBy = 2;
+				}
+			} else if (newTerms.get(i) instanceof ArrayList) {
+				incrementBy = 2;
+				newTerms.set(i, dealWithMultiplication((ArrayList)newTerms.get(i)));
+			}
+		}
 		return newTerms;
 	}
 	
@@ -67,7 +94,6 @@ public class Differentiator {
 	 */
 	private ArrayList dealWithParentheses(ArrayList terms) {
 		ArrayList newTerms = terms;
-		System.out.println("Now we're dealing with the parentheses");
 		int workingIndex = -1;
 		
 		for (int i = 0; i < newTerms.size(); i++) {
@@ -269,7 +295,7 @@ public class Differentiator {
 		try {
 			if (operators.size() != 0) {
 				terms.add(input.substring(0, (int)operators.get(0)));
-				System.out.println(input.substring(0, (int)operators.get(0)));//the term between the beginning and the first operator
+//				System.out.println(input.substring(0, (int)operators.get(0)));//the term between the beginning and the first operator
 				for (int k = 0; k < operators.size() - 1; k++) {
 					//				System.out.println("numParenthLevelsIn: " + (int)determineNumParenthLevelsIn((int)operators.get(k + 1)) + ", and k:" + (k + 1));
 					int currIndex = (int)operators.get(k) + 2;
@@ -278,32 +304,32 @@ public class Differentiator {
 						if (determineNumParenthLevelsIn(input, (int)operators.get(k), this.openingParentheses, this.closingParentheses) == 0) {
 							terms.add(input.charAt((int)operators.get(k)) + "");
 							terms.add("");
-							System.out.println(input.charAt((int)operators.get(k)));
+//							System.out.println(input.charAt((int)operators.get(k)));
 						}else{
 							terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.charAt((int)operators.get(k)));
-							System.out.print(input.charAt((int)operators.get(k)));
+//							System.out.print(input.charAt((int)operators.get(k)));
 						}
 						if (determineNumParenthLevelsIn(input, (int)operators.get(k + 1), this.openingParentheses, this.closingParentheses) == 0) {
-							System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
+//							System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
 							terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
-							System.out.print("\n");
+//							System.out.print("\n");
 						}else{
 							terms.set(terms.size() - 1, (String)terms.get(terms.size() - 1) + input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
-							System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
+//							System.out.print(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
 						}
 					}else{
 						terms.add(input.charAt((int)operators.get(k)) + "");
-						System.out.println(input.charAt((int)operators.get(k)));
+//						System.out.println(input.charAt((int)operators.get(k)));
 						terms.add(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));
-						System.out.println(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));//the middle terms
+//						System.out.println(input.substring((int)operators.get(k) + 1, (int)operators.get(k + 1)));//the middle terms
 					}
 				}
 				terms.add(input.charAt((int)operators.get(operators.size() - 1)) + "");
-				System.out.println(input.charAt((int)operators.get(operators.size() - 1)));
+//				System.out.println(input.charAt((int)operators.get(operators.size() - 1)));
 				terms.add(input.substring((int)operators.get(operators.size() - 1) + 1));
-				System.out.println(input.substring((int)operators.get(operators.size() - 1) + 1));//the term between the last operator and the end
+//				System.out.println(input.substring((int)operators.get(operators.size() - 1) + 1));//the term between the last operator and the end
 			}else{
-				System.out.println(input);
+//				System.out.println(input);
 			}
 		}catch (IndexOutOfBoundsException e) {
 			System.out.print("There was an IndexOutOfBoundsException with ");
@@ -411,7 +437,7 @@ public class Differentiator {
 			return term1Exponent;
 		}
 		
-		int term2CaratIndex = term1.indexOf('^');
+		int term2CaratIndex = term2.indexOf('^');
 		double term2Exponent = 0D;
 		if (term2CaratIndex != -1 && isDouble(term2.substring(term2CaratIndex + 1))) {
 			term2Exponent = Double.parseDouble(term2.substring(term2CaratIndex + 1));
@@ -439,7 +465,7 @@ public class Differentiator {
 			term1Coefficient = Double.parseDouble(term1CoefficientString);
 		}
 
-		String term2CoefficientString = term2.substring(0, term2.indexOf("x") != -1 ? term1.indexOf("x") : term2.length());
+		String term2CoefficientString = term2.substring(0, term2.indexOf("x") != -1 ? term2.indexOf("x") : term2.length());
 		double term2Coefficient = 0D;
 		if (isDouble(term2CoefficientString)) {
 			term2Coefficient = Double.parseDouble(term2CoefficientString);
