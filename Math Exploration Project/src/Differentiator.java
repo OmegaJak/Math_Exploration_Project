@@ -79,10 +79,89 @@ public class Differentiator {
 				}
 			}
 		}
-		
-		ArrayList emdasList = findAndIdentifyEMDAS((String)newTerms.get(workingIndex));
-		
+
+		String workingIndexString = getString(newTerms.get(workingIndex));
+		ArrayList emdasList = findAndIdentifyEMDAS(workingIndexString);
+//		newTerms = addImpliedOnes(newTerms);
+		if (!((ArrayList)emdasList.get(0)).isEmpty()) {
+			for (int i = 0; i < ((ArrayList)emdasList.get(0)).size(); i++) {
+/**				ArrayList exponents = (ArrayList)emdasList.get(0);
+				if (newTerms.get(workingIndex) instanceof ArrayList) {
+					String term = getTermFromPossiblyMultiDimensionalIndex(determineIndexOfString((ArrayList)newTerms.get(workingIndex), "^", i, 0, 0), (ArrayList)newTerms.get(workingIndex), 0);
+					int caratIndexWithinTerm = term.indexOf("^");
+				}else{
+					System.out.println("Thar be rough seas ahead");
+					break;
+				}*/
+			}
+		}
+		System.out.println(newTerms.toString());
 		return newTerms;
+	}
+	
+	private String getTermFromPossiblyMultiDimensionalIndex(int lookingForIndex, ArrayList terms, int currentIndex) {
+		for (int i = 0; i < terms.size(); i++) {
+			if (terms.get(i) instanceof String) {
+				if (i == lookingForIndex) {
+					return (String)terms.get(i);
+				}
+			}else if (terms.get(i) instanceof ArrayList) {
+				String selfCallingString = getTermFromPossiblyMultiDimensionalIndex(lookingForIndex, (ArrayList)terms.get(i), i + currentIndex);
+				if (selfCallingString != null) {
+					return selfCallingString;
+				}
+			}
+		}
+		return null;
+	}
+
+	/**
+	 * Shtuff
+	 * @param terms
+	 * @param lookingFor
+	 * @param lookingForOccuranceNumber
+	 * @param occurranceNumber
+	 * @return
+	 */
+	private int determineIndexOfString(ArrayList terms, String lookingFor, int lookingForOccuranceNumber, int occurranceNumber, int startingIndex) {
+		for (int i = startingIndex; i < terms.size(); i++) {
+			if (occurranceNumber == lookingForOccuranceNumber) {
+				return i;
+			}
+			if (terms.get(i) instanceof String) {
+				if (((String)terms.get(i)).contains(lookingFor)) {
+					occurranceNumber++;
+				}
+			}else if (terms.get(i) instanceof ArrayList) {
+				occurranceNumber = determineIndexOfString((ArrayList)terms.get(i), lookingFor, lookingForOccuranceNumber, occurranceNumber, i);
+			}
+		}
+		
+		return -1;
+	}
+
+	/**
+	 * This is for Strings or ArrayLists containing Strings only, otherwise you'll just get object.toString()
+	 * @param object
+	 * @return a nice string form that I like to work with
+	 */
+	private String getString(Object object) {
+		if (object instanceof String) {
+			return (String)object;
+		}else if (object instanceof ArrayList) {
+			String result = "";
+			for (int i = 0; i < ((ArrayList)object).size(); i++) {
+				if (!((ArrayList)object).isEmpty()) {
+					if (((ArrayList)object).get(i) instanceof String) {
+						result += ((ArrayList)object).get(i);
+					}else if (((ArrayList)object).get(i) instanceof ArrayList) {
+						result += getString(((ArrayList) object).get(i));
+					}
+				}
+			}
+			return result;
+		}
+		return object.toString();
 	}
 
 	/**
@@ -95,17 +174,21 @@ public class Differentiator {
 		
 		String term;
 		for (int i = 0; i < terms.size(); i++) {
-			term = (String)newTerms.get(i);
-			int xIndex = term.indexOf("x");
-			if (xIndex != -1) {
-				if (xIndex == 0) {
-					term = "1" + term;
+			if (terms.get(i) instanceof String) {
+				term = (String)newTerms.get(i);
+				int xIndex = term.indexOf("x");
+				if (xIndex != -1) {
+					if (xIndex == 0) {
+						term = "1" + term;
+					}
+					if (term.indexOf("^") == -1) {
+						term = term + "^1";
+					}
 				}
-				if (term.indexOf("^") == -1) {
-					term = term + "^1";
-				}
+				terms.set(i, term);
+			}else if (terms.get(i) instanceof ArrayList) {
+				terms.set(i, addImpliedOnes((ArrayList)terms.get(i)));
 			}
-			terms.set(i, term);
 		}
 		
 		return newTerms;
