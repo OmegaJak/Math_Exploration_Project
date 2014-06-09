@@ -36,24 +36,62 @@ public class Differentiator {
 	 */
 	public ArrayList simplifyTerms(ArrayList terms) {
 		ArrayList newTerms = terms;
+		System.out.println("Initial: " + newTerms);
 		newTerms = dealWithParentheses(newTerms);
 		newTerms = addImpliedOnes(newTerms);
-		System.out.println(newTerms);
+		System.out.println("Parentheses and Implications: " + newTerms);
 		newTerms = dealWithExponents(newTerms);
-		System.out.println(newTerms);
-		newTerms = dealWithMultiplication(newTerms);
-		System.out.println(newTerms);
+		System.out.println("Exponents: " + newTerms);
+//		for (int i = 0; i < 3; i++) {
+			newTerms = dealWithMultiplicationOrDivision(newTerms, 0);
+			System.out.println("Multiplication: " + newTerms);
+			newTerms = dealWithMultiplicationOrDivision(newTerms, 1);
+			System.out.println("Division: " + newTerms);
+			newTerms = dealWithAdditionOrSubtraction(newTerms, 0);
+			System.out.println("Addition: " + newTerms);
+			newTerms = dealWithAdditionOrSubtraction(newTerms, 1);
+			System.out.println("Subtraction: " + newTerms);
+			newTerms = cleanUpZeros(newTerms);
+			System.out.println("Cleaning Zeros: " + newTerms);
+			newTerms = cleanUpOneTermArrays(newTerms);
+			System.out.println("Cleaning Arrays: " + newTerms);
+			newTerms = cleanUpDoubleNegatives(newTerms);
+			System.out.println("Removing Double Negatives: " + newTerms);
+//		}
 		return newTerms;
 	}
-	
-	private ArrayList dealWithMultiplication(ArrayList terms) {
+
+/**	public ArrayList multiplyParentheses(ArrayList terms1, ArrayList terms2) {
+		ArrayList multipliedTerms = new ArrayList(0);
+		for (int i = 0; i < terms1.size(); i++) {
+			for (int k = 0; k < terms2.size(); i++) {
+				if (terms1.get(i) instanceof String) {
+					if (terms2.get(k) instanceof String) {
+						
+					}else{
+						
+					}
+				}else{
+					
+				}
+			}
+		}
+	}*/
+
+	/**
+	 * 
+	 * @param terms
+	 * @param type 0 means multiplication, 1 means division
+	 * @return
+	 */
+	private ArrayList dealWithMultiplicationOrDivision(ArrayList terms, int type) {
 		ArrayList newTerms = terms;
 		int incrementBy = 2;
 		for (int i = 0; i < newTerms.size(); i += incrementBy) {
 			if (newTerms.get(i) instanceof String) {
 				if (i + 1 < newTerms.size() && newTerms.get(i + 1) instanceof String) {
-					if (newTerms.get(i + 1).equals("*") && newTerms.get(i + 2) instanceof String) {
-						newTerms.set(i, simplifyTerms((String)newTerms.get(i), (String)newTerms.get(i + 2), 0));
+					if ((type == 0 ? newTerms.get(i + 1).equals("*") : newTerms.get(i+1).equals("/")) && newTerms.get(i + 2) instanceof String) {
+						newTerms.set(i, simplifyTerms((String)newTerms.get(i), (String)newTerms.get(i + 2), type));
 						newTerms.remove(i + 1);
 						newTerms.remove(i + 1);
 						incrementBy = 0;
@@ -63,12 +101,115 @@ public class Differentiator {
 				}
 			} else if (newTerms.get(i) instanceof ArrayList) {
 				incrementBy = 2;
-				newTerms.set(i, dealWithMultiplication((ArrayList)newTerms.get(i)));
+				newTerms.set(i, dealWithMultiplicationOrDivision((ArrayList)newTerms.get(i), type));
 			}
 		}
 		return newTerms;
 	}
 	
+	private ArrayList dealWithAdditionOrSubtraction(ArrayList terms, int type) {
+		ArrayList newTerms = terms;
+		int incrementBy = 2;
+		for (int i = 0; i < newTerms.size(); i += incrementBy) {
+			if (newTerms.get(i) instanceof String) {
+				if (i + 1 < newTerms.size() && newTerms.get(i + 1) instanceof String) {
+					if (newTerms.get(i + 2) instanceof String && (type == 0 ? newTerms.get(i + 1).equals("+") : newTerms.get(i+1).equals("-")) && canAddOrSubtract((String)newTerms.get(i), (String)newTerms.get(i + 2))) {
+						boolean wasLastTermMinus;
+						if (i > 0) wasLastTermMinus = ((String)newTerms.get(i-1)).equals("-");
+						else wasLastTermMinus = false;
+						newTerms.set(i, simplifyTerms((wasLastTermMinus ? "-" : "") + (String)newTerms.get(i), (String)newTerms.get(i + 2), type + 2));
+						if (wasLastTermMinus)
+							newTerms.set(i - 1, "+");
+						newTerms.remove(i + 1);
+						newTerms.remove(i + 1);
+//						if (wasLastTermMinus)
+	//						newTerms.remove(i);
+						incrementBy = 0;
+					}else incrementBy = 2;
+				} else {//we're multiplying by parentheses
+					incrementBy = 2;
+				}
+			} else if (newTerms.get(i) instanceof ArrayList) {
+				incrementBy = 2;
+				newTerms.set(i, dealWithAdditionOrSubtraction((ArrayList)newTerms.get(i), type));
+			}
+		}
+		return newTerms;
+	}
+	
+	private ArrayList cleanUpZeros(ArrayList terms) {
+		ArrayList newTerms = terms;
+		for (int i = 0; i < newTerms.size(); i++) {
+			if (newTerms.get(i) instanceof String) {
+				String term = (String)newTerms.get(i);
+				if (isDouble(term) && Double.parseDouble(term) == 0D) {
+					if (i > 0) {
+						newTerms.remove(i - 1);
+						newTerms.remove(i - 1);
+					}else if (i == 0) {
+						newTerms.remove(i);
+						newTerms.remove(i);
+					}
+				}
+			}else if (newTerms.get(i) instanceof ArrayList) {
+				newTerms.set(i, cleanUpZeros((ArrayList)newTerms.get(i)));
+			}
+		}
+		return newTerms;
+	}
+	
+	private ArrayList cleanUpOneTermArrays(ArrayList terms) {
+		ArrayList newTerms = terms;
+		for (int i = 0; i < newTerms.size(); i++) {
+			if (newTerms.get(i) instanceof ArrayList && ((ArrayList)newTerms.get(i)).size() == 1 && ((ArrayList)newTerms.get(i)).get(0) instanceof String) {
+				newTerms.set(i, (String)((ArrayList)newTerms.get(i)).get(0));
+			}else if (newTerms.get(i) instanceof ArrayList) {
+				newTerms.set(i, cleanUpOneTermArrays((ArrayList)newTerms.get(i)));
+			}
+		}
+		return newTerms;
+	}
+	
+	private ArrayList cleanUpDoubleNegatives(ArrayList terms) {
+		ArrayList newTerms = terms;
+		
+		for (int i = 1; i < newTerms.size(); i++) {
+			if (newTerms.get(i) instanceof String && newTerms.get(i - 1) instanceof String) {
+				if (((String)newTerms.get(i)).charAt(0) == '-' && ((String)newTerms.get(i - 1)).equals("-")) {
+					newTerms.set(i - 1, "+");
+					newTerms.set(i, ((String)newTerms.get(i)).substring(1, ((String)newTerms.get(i)).length()));
+				}
+			}else if (newTerms.get(i) instanceof ArrayList) {
+				newTerms.set(i, cleanUpDoubleNegatives((ArrayList)newTerms.get(i)));
+			}
+		}
+		
+		return newTerms;
+	}
+	
+/**	private ArrayList cleanUpUnnecessaryParentheses(ArrayList terms) {
+		ArrayList newTerms = terms;
+		for (int i = 0; i < newTerms.size(); i++) {
+			if (newTerms.get(i) instanceof ArrayList && (i == 0 ? newTerms.get(i+1) instanceof String && isPlusOrMinus((String)newTerms.get(i + 1)) : (i == newTerms.size() - 1 ? newTerms.get(i - 1) instanceof String && isPlusOrMinus((String)newTerms.get(i - 1)) : newTerms.get(i - 1) instanceof String && isPlusOrMinus((String)newTerms.get(i - 1)) &&
+														newTerms.get(i+1) instanceof String && isPlusOrMinus((String)newTerms.get(i + 1))))) {
+				ArrayList innerList = (ArrayList)newTerms.get(i);
+				newTerms.add(i, ((ArrayList)innerList.get(0)).get(0));
+				if (innerList.size() > 1) {
+					for (int k = 1; k < innerList.size(); k++) {
+						((ArrayList)newTerms).add(i, innerList.get(k));
+					}
+				}
+			}else if (newTerms.get(i) instanceof ArrayList) {
+				newTerms.set(i, cleanUpUnnecessaryParentheses((ArrayList)newTerms.get(i)));
+			}
+		}
+		return newTerms;
+	}*/
+
+	private boolean isPlusOrMinus(String term) {
+		return term.equals("+") || term.equals("-");
+	}
+
 	private ArrayList dealWithExponents(ArrayList terms) {
 		ArrayList newTerms = terms;
 		for (int i = 0; i < newTerms.size(); i++) {
@@ -224,7 +365,7 @@ public class Differentiator {
 					}
 					break;
 				case '-':
-					if (determineNumParenthLevelsIn(input, i, openingParentheses, closingParentheses) == 0) {
+					if (determineNumParenthLevelsIn(input, i, openingParentheses, closingParentheses) == 0 && input.charAt(i - 1) != '^') {
 						operators.add(i);
 					}
 					break;
@@ -244,7 +385,7 @@ public class Differentiator {
 	 * @param input the input...duh
 	 * @return an ArrayList of five ArrayLists, index 0 is exponents, 1 is multiplication, 2 division, 3 addition, 4 subtraction
 	 */
-	private ArrayList findAndIdentifyEMDAS(String input) {
+/**	private ArrayList findAndIdentifyEMDAS(String input) {
 		int i = 0;//the current iteration
 		ArrayList returnList = new ArrayList(0);
 		ArrayList exponents = new ArrayList(0);
@@ -282,7 +423,7 @@ public class Differentiator {
 		returnList.add(subtraction);
 		
 		return returnList;
-	}
+	}*/
 	
 	/**
 	 * Adds the individual terms and the operators to the terms array
@@ -392,7 +533,7 @@ public class Differentiator {
 	 * @return a simplified output of the two terms
 	 */
 	public String simplifyTerms(String term1, String term2, int type) {
-		if (term1.indexOf("x") == -1) {
+		if (term1.indexOf("x") == -1 && term2.indexOf("x") != 0) {
 			return "" + determineCoefficient(term1, term2, type);
 		}
 		double answerCoefficient = determineCoefficient(term1, term2, type);
@@ -403,19 +544,41 @@ public class Differentiator {
 	}
 	
 	/**
+	 * At the moment, this assumes there are no ArrayLists in the ArrayLists
+	 * @param terms1
+	 * @param terms2
+	 * @return
+	 */
+	public ArrayList multiplyArrayLists(ArrayList terms1, ArrayList terms2) {
+		ArrayList multipliedList = new ArrayList(0);
+		
+		for (int i = 0; i < terms1.size(); i++) {
+			for (int k = 0; k < terms2.size(); k++) {
+				multipliedList.add(simplifyTerms((String)terms1.get(i), (String)terms2.get(k), 0));
+			}
+		}
+		
+		return multipliedList;
+	}
+	
+	/**
 	 * Really this just finds out if they have the same exponent, thats it
 	 * @return true if exponents are the same, false if they're not
 	 */
 	public boolean canAddOrSubtract(String term1, String term2) {
-		int term1CaratIndex = term1.indexOf('^');
-		int term2CaratIndex = term2.indexOf('^');
-		if (isDouble(term1.substring(term1CaratIndex + 1)) && isDouble(term2.substring(term2CaratIndex + 1))) {
-			if (Double.parseDouble(term1.substring(term1CaratIndex + 1)) == Double.parseDouble(term2.substring(term2CaratIndex + 1))) {
-				System.out.println(true);
+		if (term1.contains("x") && term2.contains("x")) {
+			int term1CaratIndex = term1.indexOf('^');
+			int term2CaratIndex = term2.indexOf('^');
+			if (isDouble(term1.substring(term1CaratIndex + 1)) && isDouble(term2.substring(term2CaratIndex + 1))) {
+				if (Double.parseDouble(term1.substring(term1CaratIndex + 1)) == Double.parseDouble(term2.substring(term2CaratIndex + 1))) {
+					return true;
+				}
+			}
+		}else{//this then makes the assumption that they are constants then
+			if (!term1.contains("x") && !term2.contains("x")) {
 				return true;
 			}
 		}
-		System.out.println(false);
 		return false;
 	}
 	

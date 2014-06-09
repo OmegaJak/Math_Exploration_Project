@@ -11,7 +11,7 @@ public class ExplorationProject {
 		boolean shouldGoAgain = true;
 		while (shouldGoAgain) {
 			System.out.println("What would you like to do?");
-			System.out.println("\'d\' for differentiation, \'m\' for multiplication"
+			System.out.println("\'d\' for differentiation, \'m\' for multiplication,"
 								+ "\'div\' for division, \'add\' for division, \'sub\' for subtraction");
 			switch(getReadLine()) {
 				case "d":
