@@ -20,7 +20,7 @@ public class Differentiator {
 	public void analyze(String input) {
 		input = input.replaceAll(" ", "");//get rid of all the spaces
 		
-		ArrayList analyzeList = doAnalyzingLoop(input);
+		ArrayList analyzeList = findParenthesesAndOperators(input);
 		operators = (ArrayList)analyzeList.get(0);
 		openingParentheses = (ArrayList)analyzeList.get(1);
 		closingParentheses = (ArrayList)analyzeList.get(2);
@@ -49,6 +49,7 @@ public class Differentiator {
 	private ArrayList dealWithParentheses(ArrayList terms) {
 		ArrayList newTerms = terms;
 		System.out.println("Now we're dealing with the parentheses");
+		int workingIndex = -1;
 		
 		for (int i = 0; i < newTerms.size(); i++) {
 			String term = (String)newTerms.get(i);
@@ -66,21 +67,20 @@ public class Differentiator {
 						break;
 				}
 				String substring = ((String)terms.get(i)).substring(beginParenth+1, endParenth);
-				ArrayList analyzedParentheses = doAnalyzingLoop(substring);
+				ArrayList analyzedParentheses = findParenthesesAndOperators(substring);
 				ArrayList separatedParentheses = determineSeperateTerms(substring, (ArrayList)analyzedParentheses.get(0));
 				if (contains(")", separatedParentheses) && contains("(", separatedParentheses)) {
 					ArrayList parenthTerms = dealWithParentheses(separatedParentheses);
 					newTerms.set(i, parenthTerms);
-/**					if (parenthTerms.size() > 1) {
-						for (int k = 1; k < parenthTerms.size(); k++) {
-							newTerms.add(i + k, parenthTerms.get(k));
-						}
-					}*/
+					workingIndex = i;
 				}else{
 					newTerms.set(i, separatedParentheses);
+					workingIndex = i;
 				}
 			}
 		}
+		
+		ArrayList emdasList = findAndIdentifyEMDAS((String)newTerms.get(workingIndex));
 		
 		return newTerms;
 	}
@@ -116,7 +116,7 @@ public class Differentiator {
 	 * @param input the input...duh
 	 * @return an ArrayList of three ArrayLists, index 0 is operators, 1 is openingParentheses, 2 is closingParentheses
 	 */
-	private ArrayList doAnalyzingLoop(String input) {
+	private ArrayList findParenthesesAndOperators(String input) {
 		int i = 0;//the current iteration
 		ArrayList returnList = new ArrayList(0);
 		ArrayList operators = new ArrayList(0);
@@ -165,6 +165,51 @@ public class Differentiator {
 		returnList.add(operators);
 		returnList.add(openingParentheses);
 		returnList.add(closingParentheses);
+		
+		return returnList;
+	}
+	
+	/**
+	 * Loops through the input and adds the characters and stuff to their respective arrays
+	 * @param input the input...duh
+	 * @return an ArrayList of five ArrayLists, index 0 is exponents, 1 is multiplication, 2 division, 3 addition, 4 subtraction
+	 */
+	private ArrayList findAndIdentifyEMDAS(String input) {
+		int i = 0;//the current iteration
+		ArrayList returnList = new ArrayList(0);
+		ArrayList exponents = new ArrayList(0);
+		ArrayList multiplication = new ArrayList(0);
+		ArrayList division = new ArrayList(0);
+		ArrayList addition = new ArrayList(0);
+		ArrayList subtraction = new ArrayList(0);
+		
+		while (i < input.length() - 1) {
+			char currentLetter = input.charAt(i);
+			switch (currentLetter) {
+				case '^':
+					exponents.add(i);
+					break;
+				case '*':
+					multiplication.add(i);
+					break;
+				case '/':
+					division.add(i);
+					break;
+				case '+':
+					addition.add(i);
+					break;
+				case '-':
+					subtraction.add(i);
+					break;
+			}
+			i++;
+		}
+		
+		returnList.add(exponents);
+		returnList.add(multiplication);
+		returnList.add(division);
+		returnList.add(addition);
+		returnList.add(subtraction);
 		
 		return returnList;
 	}
