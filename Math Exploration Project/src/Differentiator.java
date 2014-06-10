@@ -547,14 +547,36 @@ public class Differentiator {
 	 * At the moment, this assumes there are no ArrayLists in the ArrayLists
 	 * @param terms1
 	 * @param terms2
-	 * @return
+	 * @return (4x+2)*(8x*(9x^+2))
 	 */
 	public ArrayList multiplyArrayLists(ArrayList terms1, ArrayList terms2) {
 		ArrayList multipliedList = new ArrayList(0);
 		
 		for (int i = 0; i < terms1.size(); i++) {
-			for (int k = 0; k < terms2.size(); k++) {
-				multipliedList.add(simplifyTerms((String)terms1.get(i), (String)terms2.get(k), 0));
+			if (terms1.get(i) instanceof String) {
+				for (int k = 0; k < terms2.size(); k++) {
+					//				multipliedList.add(simplifyTerms((String)terms1.get(i), (String)terms2.get(k), 0));
+					if (terms2.get(i) instanceof String) {
+
+					}else if (terms2.get(i) instanceof ArrayList) {
+
+					}
+				}
+			}else if (terms1.get(i) instanceof ArrayList) {
+				ArrayList innerList = (ArrayList)terms1.get(i);
+				if (innerList.size() > i + 2) {
+					if (innerList.get(i + 1) instanceof String && innerList.get(i + 1).equals("*")) {
+						if (terms1.get(i + 2) instanceof ArrayList) {
+							multiplyArrayLists(innerList, (ArrayList)terms1.get(i + 2));
+						}else if (terms1.get(i + 2) instanceof String){
+							ArrayList newList = new ArrayList(0);
+							newList.add(terms1.get(i + 2));
+							multiplyArrayLists(innerList, newList);
+						}
+					}
+				}else if (i == innerList.size() - 1) {
+					
+				}
 			}
 		}
 		
