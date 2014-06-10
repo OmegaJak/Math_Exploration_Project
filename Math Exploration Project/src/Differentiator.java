@@ -567,20 +567,42 @@ public class Differentiator {
 				if (innerList.size() > i + 2) {
 					if (innerList.get(i + 1) instanceof String && innerList.get(i + 1).equals("*")) {
 						if (terms1.get(i + 2) instanceof ArrayList) {
-							multiplyArrayLists(innerList, (ArrayList)terms1.get(i + 2));
+							multipliedList = addAllTermsToReturnList(multiplyArrayLists(innerList, (ArrayList)terms1.get(i + 2)), multipliedList);
 						}else if (terms1.get(i + 2) instanceof String){
 							ArrayList newList = new ArrayList(0);
 							newList.add(terms1.get(i + 2));
-							multiplyArrayLists(innerList, newList);
+							multipliedList = addAllTermsToReturnList(multiplyArrayLists(innerList, newList), multipliedList);
 						}
 					}
-				}else if (i == innerList.size() - 1) {
-					
+				}else if (i - 2 >= 0 && i == innerList.size() - 1) {
+					if (innerList.get(i - 1) instanceof String && innerList.get(i - 1).equals("*")) {
+						if (terms1.get(i - 2) instanceof ArrayList) {
+							multipliedList = addAllTermsToReturnList(multiplyArrayLists(innerList, (ArrayList)terms1.get(i - 2)), multipliedList);
+						}else if (terms1.get(i - 2) instanceof String){
+							ArrayList newList = new ArrayList(0);
+							newList.add(terms1.get(i - 2));
+							multipliedList = addAllTermsToReturnList(multiplyArrayLists(innerList, newList), multipliedList);
+						}
+					}
 				}
 			}
 		}
 		
 		return multipliedList;
+	}
+	
+	public ArrayList addAllTermsToReturnList(ArrayList toAdd, ArrayList addTo) {
+		ArrayList returnList = addTo;
+		
+		for (int i = 0; i < toAdd.size(); i++) {
+			if (toAdd.get(i) instanceof String) {
+				returnList.add((String)toAdd.get(i));
+			}else if (toAdd.get(i) instanceof ArrayList) {
+				returnList = addAllTermsToReturnList((ArrayList)toAdd.get(i), returnList);
+			}
+		}
+		
+		return returnList;
 	}
 	
 	/**
